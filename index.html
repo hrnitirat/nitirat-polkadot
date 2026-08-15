@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5b3718">
+<title>NITIRAT POLKADOT PHOTO BOOTH</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fredoka:wght@500;600;700&family=Playfair+Display:wght@700&display=swap');
+
+:root{
+  --brown:#5b3718; --cream:#fff9ef; --pink:#efb9d4; --blue:#a9d9ef;
+  --mint:#bde7d9; --ink:#28180d;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; color:var(--ink); background:var(--brown);
+  font-family:Fredoka,system-ui,sans-serif; overflow-x:hidden;
+}
+body:before{
+  content:""; position:fixed; inset:0; pointer-events:none; opacity:.12;
+  background-image:radial-gradient(#fff 1px,transparent 1px);
+  background-size:7px 7px;
+}
+.app{min-height:100vh; padding:18px 14px 28px; max-width:900px; margin:auto}
+.topbar{display:flex; justify-content:space-between; align-items:center; color:#fff8ed; font-family:"DM Mono",monospace; font-size:11px; letter-spacing:.08em}
+.logo{font-weight:700; font-size:15px}
+.sticker{
+  display:inline-flex; align-items:center; gap:7px; background:#fff8ed; color:var(--brown);
+  padding:7px 11px; border-radius:4px; transform:rotate(2deg);
+  box-shadow:3px 3px 0 #2e1a0b; font-size:10px;
+}
+.hero{text-align:center; padding:16px 0 12px}
+.hero h1{
+  margin:0; color:#fffaf1; font-size:clamp(45px,11vw,92px); line-height:.9;
+  letter-spacing:-.05em; text-shadow:5px 5px 0 #2d1909;
+}
+.hero h1 .o{display:inline-grid; place-items:center; width:.72em; height:.72em; color:#4d2c13; background:#b7dc62; border:5px solid #fff6e9; border-radius:50%; font-size:.45em; vertical-align:middle; transform:rotate(-8deg)}
+.hero h1 .o2{background:#b66a36}
+.ribbon{
+  display:inline-block; margin-top:10px; background:var(--blue); padding:8px 26px;
+  font-family:"DM Mono",monospace; font-weight:500; letter-spacing:.1em;
+  border:3px solid #fff8ed; box-shadow:4px 4px 0 #2e1a0b;
+  clip-path:polygon(0 0,100% 0,94% 50%,100% 100%,0 100%,6% 50%);
+}
+.badge{
+  margin:16px auto 0; width:min(330px,85%); background:var(--pink); border:5px solid #fff8ed;
+  border-radius:48% 52% 50% 50%; padding:15px 20px; font-family:"DM Mono",monospace;
+  box-shadow:5px 5px 0 #2d1909; transform:rotate(-2deg)
+}
+.badge b{font-size:18px; display:block}.badge span{font-size:10px}
+
+.booth{
+  background:#fff8ed; border:5px solid #2e1a0b; border-radius:22px; padding:12px;
+  box-shadow:8px 9px 0 #2e1a0b; margin-top:18px;
+}
+.screen-wrap{position:relative; background:#2e1a0b; border:4px solid #2e1a0b; border-radius:14px; overflow:hidden; aspect-ratio:4/3}
+video{width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1)}
+canvas{display:none}
+.overlay{
+  position:absolute; inset:0; pointer-events:none; overflow:hidden;
+}
+.overlay.brown{background-color:#5b3718;background-image:radial-gradient(#fff 0 7px,transparent 8px);background-size:70px 70px;opacity:.55;mix-blend-mode:normal}
+.overlay.pink{background:#efb9d4;background-image:radial-gradient(#bde7d9 0 7px,transparent 8px);background-size:62px 62px;opacity:.62}
+.overlay.blue{background:#a9d9ef;background-image:radial-gradient(#fff 0 7px,transparent 8px);background-size:65px 65px;opacity:.6}
+.overlay.checker{background:repeating-conic-gradient(#f5c7dd 0 25%,#c4e9dc 0 50%) 0/80px 80px;opacity:.58}
+.overlay.news{background:#eee3cf;opacity:.9}
+.newsprint{position:absolute;inset:0;padding:20px;color:#352414;font-family:Georgia,serif;opacity:.9}
+.newsprint .mast{font-size:clamp(25px,7vw,50px);font-weight:900;text-align:center;border-top:4px solid;border-bottom:4px solid;padding:5px 0}
+.newsprint .cols{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px;margin-top:10px}
+.newsprint h2{font-size:clamp(17px,4vw,28px);line-height:.95;margin:0 0 7px}
+.newsprint p{font-size:9px;line-height:1.2;margin:0}
+.lace{
+  position:absolute; left:0; right:0; top:0; height:15px;
+  background:radial-gradient(circle at 8px 8px,transparent 5px,#fff 5.5px 7px,transparent 7.5px) 0/16px 16px;
+}
+.caption{
+  position:absolute; left:10px; right:10px; bottom:10px; background:#fff8eddd;
+  border:2px solid #2e1a0b; padding:7px 10px; text-align:center;
+  font-family:"DM Mono",monospace; font-size:10px; letter-spacing:.04em;
+}
+.flash{position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none}
+.flash.on{animation:flash .35s}
+@keyframes flash{0%{opacity:.9}100%{opacity:0}}
+
+.controls{padding:12px 2px 2px}
+.label{font-family:"DM Mono",monospace; font-size:11px; font-weight:700; letter-spacing:.08em; margin:6px 0}
+.themes{display:flex; gap:9px; overflow-x:auto; padding:3px 2px 8px; scrollbar-width:none}
+.theme{
+  flex:0 0 76px; border:3px solid #2e1a0b; background:#fff; border-radius:10px; padding:4px;
+  box-shadow:3px 3px 0 #2e1a0b; cursor:pointer; font:600 9px Fredoka;
+}
+.theme.active{transform:translateY(-3px) rotate(-2deg); background:#ffd9ea}
+.thumb{height:52px;border-radius:6px;margin-bottom:4px;border:1px solid #2e1a0b}
+.t-brown{background:#5b3718;background-image:radial-gradient(#fff 0 5px,transparent 5.5px);background-size:28px 28px}
+.t-pink{background:#efb9d4;background-image:radial-gradient(#bde7d9 0 5px,transparent 5.5px);background-size:25px 25px}
+.t-blue{background:#a9d9ef;background-image:radial-gradient(#fff 0 5px,transparent 5.5px);background-size:27px 27px}
+.t-check{background:repeating-conic-gradient(#f5c7dd 0 25%,#c4e9dc 0 50%) 0/28px 28px}
+.t-news{background:#eee3cf; background-image:repeating-linear-gradient(0deg,transparent 0 7px,#5b3718 8px 9px)}
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+button{
+  border:3px solid #2e1a0b; background:var(--blue); color:#2e1a0b; border-radius:11px;
+  padding:13px 10px; font:700 14px Fredoka; box-shadow:4px 4px 0 #2e1a0b; cursor:pointer;
+}
+button:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #2e1a0b}
+button.primary{background:var(--pink);font-size:18px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.hint{text-align:center;font-size:10px;margin:12px 0 0;font-family:"DM Mono",monospace}
+.footer{text-align:center;color:#fff8ed;margin-top:22px;font-family:"DM Mono",monospace;font-size:10px}
+.modal{position:fixed;inset:0;background:#2e1a0bdd;display:none;place-items:center;padding:18px;z-index:10}
+.modal.show{display:grid}
+.card{background:#fff8ed;border:5px solid #2e1a0b;box-shadow:8px 8px 0 #000;border-radius:18px;padding:14px;max-width:620px;width:100%;text-align:center}
+#result{max-width:100%;max-height:65vh;border:3px solid #2e1a0b;object-fit:contain;background:#5b3718}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.small{font-size:10px;color:#5b3718}
+@media(max-width:520px){
+ .app{padding:12px 10px 22px}
+ .hero{padding-top:12px}.booth{margin-top:13px}
+ .hero h1{font-size:55px}
+ .badge{padding:11px 15px}
+}
+
+.shot-picker{display:flex;align-items:center;gap:7px;margin-top:10px;flex-wrap:wrap}
+.shot-picker .label{margin:0 4px 0 0}
+.shot-mode{padding:7px 11px;font-size:10px;box-shadow:2px 2px 0 #2e1a0b;background:#fff8ed}
+.shot-mode.active{background:#efb9d4;transform:translateY(-2px)}
+.progress{text-align:center;font-family:"DM Mono",monospace;font-size:11px;margin:8px 0 0;font-weight:700}
+.countdown{
+ position:absolute;inset:0;display:grid;place-items:center;z-index:4;
+ font-size:clamp(70px,20vw,150px);font-weight:700;color:#fff8ed;
+ text-shadow:7px 7px 0 #2e1a0b;opacity:0;pointer-events:none
+}
+.countdown.show{animation:count .8s ease}
+@keyframes count{0%{opacity:0;transform:scale(.6)}25%{opacity:1;transform:scale(1.1)}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.2)}}
+.shot-badge{position:absolute;top:10px;left:10px;z-index:3;background:#fff8ed;border:3px solid #2e1a0b;padding:5px 8px;border-radius:7px;font:700 10px "DM Mono";box-shadow:3px 3px 0 #2e1a0b}
+.result-strip{background:#5b3718;padding:14px;border:3px solid #2e1a0b;max-height:70vh;overflow:auto}
+.result-strip img{display:block;width:min(100%,420px);margin:auto;border:4px solid #fff8ed;box-shadow:0 3px 0 #2e1a0b}
+.result-title{font-size:20px;margin:8px 0 2px}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">NITIRAT ♡ DOTS</div>
+    <div class="sticker">29 AUG. 2026</div>
+  </div>
+
+  <header class="hero">
+    <h1>P<span class="o">O</span>LKAD<span class="o o2">O</span>T.</h1>
+    <div class="ribbon">PHOTO BOOTH</div>
+    <div class="badge"><b>NITIRAT<br>DOTS OF TOGETHERNESS</b><span>focus on the good times ✦</span></div>
+  </header>
+
+  <main class="booth">
+    <div class="screen-wrap">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="canvas"></canvas>
+      <div id="overlay" class="overlay brown">
+        <div class="lace"></div>
+        <div id="newsprint" class="newsprint" style="display:none">
+          <div class="mast">NITIRAT DAILY</div>
+          <div class="cols">
+            <div><h2>POLKADOT PARTY!</h2><p>BREAKING NEWS — Everybody looks better in dots. Special edition • 29 AUGUST 2026 • NITIRAT DOTS OF TOGETHERNESS.</p></div>
+            <div><h2>STYLE FILE</h2><p>Pastel. Whimsy. A little Y2K. Wear your dots and make a memory.</p></div>
+            <div><h2>NEWS</h2><p>Smile! You're officially part of today's cutest story.</p></div>
+          </div>
+        </div>
+        <div class="shot-badge" id="shotBadge">SHOT 0 / 4</div>
+        <div id="countdown" class="countdown"></div>
+        <div class="caption">NITIRAT POLKADOT • 29.08.69</div>
+      </div>
+      <div id="flash" class="flash"></div>
+    </div>
+
+    <section class="controls">
+      <div class="label">CHOOSE YOUR BACKGROUND ✦</div>
+      <div class="themes">
+        <button class="theme active" data-theme="brown"><div class="thumb t-brown"></div>BROWN DOT</button>
+        <button class="theme" data-theme="pink"><div class="thumb t-pink"></div>PINK DOT</button>
+        <button class="theme" data-theme="news"><div class="thumb t-news"></div>NEWSPAPER</button>
+        <button class="theme" data-theme="blue"><div class="thumb t-blue"></div>BLUE DOT</button>
+        <button class="theme" data-theme="checker"><div class="thumb t-check"></div>CHECKER</button>
+      </div>
+
+      <div class="shot-picker">
+        <span class="label">PHOTO STRIP</span>
+        <button class="shot-mode active" data-shots="4">4 SHOTS</button>
+        <button class="shot-mode" data-shots="6">6 SHOTS</button>
+      </div>
+      <div id="progress" class="progress">READY ♡ 0 / 4</div>
+      <div class="action-row">
+        <button id="startBtn">📷 START CAMERA</button>
+        <button id="captureBtn" class="primary" disabled>✦ START PHOTO STRIP</button>
+      </div>
+      <p class="hint">โพสตามจังหวะ 4 หรือ 6 ชอต • ระบบนับถอยหลังให้อัตโนมัติ</p>
+    </section>
+  </main>
+
+  <div class="footer">DRESS UP. TAKE A PIC. MAKE A MEMORY. ♡</div>
+</div>
+
+<div id="modal" class="modal">
+  <div class="card">
+    <div class="result-strip"><img id="result" alt="Your Polkadot photo strip"></div>
+    <p class="result-title"><b>YOUR POLKADOT PHOTO STRIP ♡</b></p>
+    <p class="small">บันทึกลงเครื่อง หรือกด Share เพื่อเลือกแอป/แกลลอรีบนมือถือ</p>
+    <div class="modal-actions">
+      <button id="saveBtn">♡ SAVE TO PHONE</button>
+      <button id="shareBtn">✦ SHARE</button>
+    </div>
+    <button id="againBtn" style="margin-top:10px;width:100%;background:#bde7d9">↺ TAKE ANOTHER</button>
+  </div>
+</div>
+
+<script>
+const video=document.getElementById('video');
+const canvas=document.getElementById('canvas');
+const overlay=document.getElementById('overlay');
+const newsprint=document.getElementById('newsprint');
+const flash=document.getElementById('flash');
+const startBtn=document.getElementById('startBtn');
+const captureBtn=document.getElementById('captureBtn');
+const modal=document.getElementById('modal');
+const result=document.getElementById('result');
+let stream=null, currentTheme='brown', lastBlob=null;
+let shotCount=4, shots=[], busy=false;
+
+async function startCamera(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'user'},width:{ideal:1280},height:{ideal:960}},
+      audio:false
+    });
+    video.srcObject=stream;
+    captureBtn.disabled=false;
+    startBtn.textContent='✓ CAMERA READY';
+  }catch(e){
+    alert('เปิดกล้องไม่ได้ค่ะ — กรุณาอนุญาต Camera และเปิดเว็บผ่าน HTTPS หรือ localhost');
+  }
+}
+startBtn.addEventListener('click',startCamera);
+
+document.querySelectorAll('.shot-mode').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(busy)return;
+    document.querySelectorAll('.shot-mode').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    shotCount=Number(btn.dataset.shots);
+    progress.textContent=`READY ♡ 0 / ${shotCount}`;
+    shotBadge.textContent=`SHOT 0 / ${shotCount}`;
+  });
+});
+
+document.querySelectorAll('.theme').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(busy)return;
+    document.querySelectorAll('.theme').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    currentTheme=btn.dataset.theme;
+    overlay.className='overlay '+currentTheme;
+    newsprint.style.display=currentTheme==='news'?'block':'none';
+  });
+});
+
+function drawBackground(ctx,w,h){
+  if(currentTheme==='brown'){
+    ctx.fillStyle='#5b3718';ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#fff'; for(let y=45;y<h;y+=120) for(let x=45;x<w;x+=120){ctx.beginPath();ctx.arc(x,y,13,0,Math.PI*2);ctx.fill();}
+  } else if(currentTheme==='pink'){
+    ctx.fillStyle='#efb9d4';ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#bde7d9'; for(let y=45;y<h;y+=105) for(let x=45;x<w;x+=105){ctx.beginPath();ctx.arc(x,y,13,0,Math.PI*2);ctx.fill();}
+  } else if(currentTheme==='blue'){
+    ctx.fillStyle='#a9d9ef';ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#fff'; for(let y=45;y<h;y+=110) for(let x=45;x<w;x+=110){ctx.beginPath();ctx.arc(x,y,13,0,Math.PI*2);ctx.fill();}
+  } else if(currentTheme==='checker'){
+    const s=70; for(let y=0;y<h;y+=s)for(let x=0;x<w;x+=s){ctx.fillStyle=((x/s+y/s)%2?'#c4e9dc':'#f5c7dd');ctx.fillRect(x,y,s,s);}
+  } else {
+    ctx.fillStyle='#eee3cf';ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#352414';ctx.textAlign='center';
+    ctx.font='900 '+Math.round(w*.075)+'px Georgia';ctx.fillText('NITIRAT DAILY',w/2,h*.12);
+    ctx.fillRect(w*.08,h*.14,w*.84,5);
+    ctx.textAlign='left';ctx.font='900 '+Math.round(w*.045)+'px Georgia';
+    ctx.fillText('POLKADOT PARTY!',w*.08,h*.25);
+    ctx.font=Math.round(w*.022)+'px Georgia';
+    const text='BREAKING NEWS — Everybody looks better in dots. Special edition • 29 AUGUST 2026 • NITIRAT DOTS OF TOGETHERNESS.';
+    wrapText(ctx,text,w*.08,h*.31,w*.84,Math.round(w*.022)*1.5);
+    ctx.font='900 '+Math.round(w*.04)+'px Georgia';ctx.fillText('STYLE FILE',w*.08,h*.53);
+    ctx.font=Math.round(w*.022)+'px Georgia';wrapText(ctx,'Pastel. Whimsy. A little Y2K. Wear your dots and make a memory.',w*.08,h*.59,w*.84,Math.round(w*.022)*1.5);
+  }
+}
+function wrapText(ctx,text,x,y,maxWidth,lineHeight){
+  const words=text.split(' ');let line='';
+  for(const word of words){const test=line+word+' ';if(ctx.measureText(test).width>maxWidth&&line){ctx.fillText(line,x,y);line=word+' ';y+=lineHeight}else line=test}
+  ctx.fillText(line,x,y);
+}
+function drawLace(ctx,w){
+  ctx.fillStyle='#fff8ed';for(let x=0;x<w;x+=24){ctx.beginPath();ctx.arc(x+12,10,7,0,Math.PI*2);ctx.fill()}
+}
+function drawShotDecor(ctx,w,h){
+  ctx.strokeStyle='#fff8ed';ctx.lineWidth=Math.max(3,w*.008);
+  ctx.strokeRect(w*.025,h*.025,w*.95,h*.95);
+}
+function getShot(){
+  const w=video.videoWidth,h=video.videoHeight;
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  const ctx=c.getContext('2d');
+  drawBackground(ctx,w,h);
+  ctx.save();ctx.translate(w,0);ctx.scale(-1,1);ctx.drawImage(video,0,0,w,h);ctx.restore();
+  drawShotDecor(ctx,w,h);
+  ctx.globalAlpha=.12;
+  ctx.fillStyle=currentTheme==='brown'?'#5b3718':currentTheme==='pink'?'#efb9d4':currentTheme==='blue'?'#a9d9ef':'#fff';
+  ctx.fillRect(0,0,w,h);ctx.globalAlpha=1;
+  return c.toDataURL('image/jpeg',.92);
+}
+function wait(ms){return new Promise(r=>setTimeout(r,ms))}
+async function countdown(n){
+  countdownEl.textContent=n;
+  countdownEl.classList.remove('show');void countdownEl.offsetWidth;countdownEl.classList.add('show');
+  await wait(800);
+}
+async function takeStrip(){
+  if(busy || !video.videoWidth)return;
+  busy=true; shots=[];
+  captureBtn.disabled=true; startBtn.disabled=true;
+  document.querySelectorAll('.theme,.shot-mode').forEach(x=>x.style.pointerEvents='none');
+  for(let i=0;i<shotCount;i++){
+    progress.textContent=`GET READY ♡ ${i+1} / ${shotCount}`;
+    shotBadge.textContent=`SHOT ${i+1} / ${shotCount}`;
+    await countdown(3); await countdown(2); await countdown(1);
+    flash.classList.remove('on');void flash.offsetWidth;flash.classList.add('on');
+    shots.push(getShot());
+    await wait(700);
+  }
+  progress.textContent=`DONE ♡ ${shotCount} / ${shotCount}`;
+  await buildStrip();
+  captureBtn.disabled=false;startBtn.disabled=false;
+  document.querySelectorAll('.theme,.shot-mode').forEach(x=>x.style.pointerEvents='auto');
+  busy=false;
+}
+captureBtn.addEventListener('click',takeStrip);
+
+async function buildStrip(){
+  const first=document.createElement('img');
+  first.src=shots[0];
+  await new Promise(r=>first.onload=r);
+  const w=first.naturalWidth, cellH=Math.round(w*1.08), pad=Math.round(w*.055);
+  const labelH=Math.round(w*.28);
+  const out=document.createElement('canvas');
+  out.width=w+pad*2; out.height=pad+(cellH*shots.length)+labelH+pad;
+  const ctx=out.getContext('2d');
+
+  // Polka-paper backing.
+  if(currentTheme==='brown'){
+    ctx.fillStyle='#5b3718';ctx.fillRect(0,0,out.width,out.height);
+    ctx.fillStyle='#fff3dc';
+    for(let y=25;y<out.height;y+=90)for(let x=25;x<out.width;x+=90){ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fill();}
+  } else if(currentTheme==='pink'){
+    ctx.fillStyle='#efb9d4';ctx.fillRect(0,0,out.width,out.height);
+    ctx.fillStyle='#bde7d9';
+    for(let y=25;y<out.height;y+=82)for(let x=25;x<out.width;x+=82){ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fill();}
+  } else if(currentTheme==='blue'){
+    ctx.fillStyle='#a9d9ef';ctx.fillRect(0,0,out.width,out.height);
+    ctx.fillStyle='#fff';
+    for(let y=25;y<out.height;y+=85)for(let x=25;x<out.width;x+=85){ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fill();}
+  } else if(currentTheme==='checker'){
+    const s=55;for(let y=0;y<out.height;y+=s)for(let x=0;x<out.width;x+=s){ctx.fillStyle=((x/s+y/s)%2?'#c4e9dc':'#f5c7dd');ctx.fillRect(x,y,s,s);}
+  } else {
+    ctx.fillStyle='#eee3cf';ctx.fillRect(0,0,out.width,out.height);
+    ctx.fillStyle='#6a4b31';ctx.font=`bold ${Math.round(w*.03)}px Georgia`;ctx.textAlign='center';
+    ctx.fillText('NITIRAT DAILY • POLKADOT SPECIAL EDITION',out.width/2,pad*.7);
+  }
+
+  let y=pad;
+  for(const data of shots){
+    const im=new Image();im.src=data;await new Promise(r=>im.onload=r);
+    ctx.fillStyle='#fff8ed';ctx.fillRect(pad-5,y-5,w+10,cellH+10);
+    // Crop portrait-style without stretching.
+    const srcRatio=im.width/im.height, targetRatio=w/cellH;
+    let sw=im.width,sh=im.height,sx=0,sy=0;
+    if(srcRatio>targetRatio){sw=im.height*targetRatio;sx=(im.width-sw)/2}
+    else{sh=im.width/targetRatio;sy=(im.height-sh)/2}
+    ctx.drawImage(im,sx,sy,sw,sh,pad,y,w,cellH);
+    y+=cellH;
+  }
+  ctx.fillStyle='#fff8ed';ctx.fillRect(pad,y,w,labelH);
+  ctx.strokeStyle='#2e1a0b';ctx.lineWidth=3;ctx.strokeRect(pad,y,w,labelH);
+  ctx.fillStyle='#2e1a0b';ctx.textAlign='center';
+  ctx.font=`700 ${Math.round(w*.075)}px Fredoka`;ctx.fillText('POLKADOT.',out.width/2,y+labelH*.48);
+  ctx.font=`500 ${Math.round(w*.026)}px "DM Mono"`;ctx.fillText('NITIRAT • 29 AUG. 2026 • DOTS OF TOGETHERNESS',out.width/2,y+labelH*.72);
+
+  out.toBlob(blob=>{
+    lastBlob=blob;result.src=URL.createObjectURL(blob);modal.classList.add('show');
+  },'image/jpeg',.94);
+}
+
+const progress=document.getElementById('progress');
+const countdownEl=document.getElementById('countdown');
+const shotBadge=document.getElementById('shotBadge');
+
+document.getElementById('saveBtn').addEventListener('click',()=>{
+  if(!lastBlob)return;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(lastBlob);
+  a.download='NITIRAT-POLKADOT-PHOTO-STRIP.jpg';
+  document.body.appendChild(a);a.click();a.remove();
+});
+document.getElementById('shareBtn').addEventListener('click',async()=>{
+  if(!lastBlob)return;
+  const file=new File([lastBlob],'NITIRAT-POLKADOT-PHOTO-STRIP.jpg',{type:'image/jpeg'});
+  if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+    try{await navigator.share({title:'NITIRAT POLKADOT',text:'My Polkadot photo strip ♡',files:[file]});}
+    catch(e){}
+  }else document.getElementById('saveBtn').click();
+});
+document.getElementById('againBtn').addEventListener('click',()=>{
+  modal.classList.remove('show');
+  progress.textContent=`READY ♡ 0 / ${shotCount}`;
+  shotBadge.textContent=`SHOT 0 / ${shotCount}`;
+});
+window.addEventListener('beforeunload',()=>stream?.getTracks().forEach(t=>t.stop()));
+
+</script>
+</body>
+</html>
