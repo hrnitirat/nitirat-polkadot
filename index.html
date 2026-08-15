@@ -137,6 +137,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .result-strip img{display:block;width:min(100%,420px);margin:auto;border:4px solid #fff8ed;box-shadow:0 3px 0 #2e1a0b}
 .result-title{font-size:20px;margin:8px 0 2px}
 
+
+.booth-stage{position:relative;padding:18px;border:4px solid #2e1a0b;border-radius:18px;background:#5b3718;background-image:radial-gradient(circle,#fff3dc 0 11px,transparent 12px);background-size:58px 58px;box-shadow:7px 7px 0 #2e1a0b;overflow:hidden}
+.booth-stage:before{content:"POLKADOT BOOTH ♡";position:absolute;left:12px;top:7px;color:#fff3dc;font:700 10px "DM Mono",monospace;z-index:2}
+.camera-window{position:relative;width:100%;aspect-ratio:4/5;background:#d7c7b4;border:6px solid #fff8ed;box-shadow:4px 4px 0 #2e1a0b;overflow:hidden;margin-top:18px}
+.camera-window video{width:100%;height:100%;display:block;object-fit:cover;transform:scaleX(-1)}
+.window-frame{position:absolute;inset:0;pointer-events:none;border:3px solid rgba(46,26,11,.8)}
+.corner{position:absolute;width:28px;height:28px;border-color:#fff8ed;border-style:solid}
+.tl{left:9px;top:9px;border-width:4px 0 0 4px}.tr{right:9px;top:9px;border-width:4px 4px 0 0}.bl{left:9px;bottom:9px;border-width:0 0 4px 4px}.br{right:9px;bottom:9px;border-width:0 4px 4px 0}
+.live-label{position:absolute;right:9px;top:9px;background:#fff8ed;color:#2e1a0b;padding:5px 7px;border:2px solid #2e1a0b;font:700 9px "DM Mono",monospace;z-index:3}
+.booth-copy{color:#fff8ed;text-align:center;margin:12px 0 0;font:10px "DM Mono",monospace}
+
 </style>
 </head>
 <body>
@@ -166,7 +177,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
             <div><h2>NEWS</h2><p>Smile! You're officially part of today's cutest story.</p></div>
           </div>
         </div>
-        <div class="shot-badge" id="shotBadge">SHOT 0 / 4</div>
+        <div class="shot-badge" id="shotBadge">SHOT 0 / 2</div>
         <div id="countdown" class="countdown"></div>
         <div class="caption">NITIRAT POLKADOT • 29.08.69</div>
       </div>
@@ -185,10 +196,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
       <div class="shot-picker">
         <span class="label">PHOTO STRIP</span>
-        <button class="shot-mode active" data-shots="4">4 SHOTS</button>
-        <button class="shot-mode" data-shots="6">6 SHOTS</button>
+        <button class="shot-mode active" data-shots="2">2 SHOTS</button>
+        <button class="shot-mode" data-shots="4">4 SHOTS</button>
       </div>
-      <div id="progress" class="progress">READY ♡ 0 / 4</div>
+      <div id="progress" class="progress">READY ♡ 0 / 2</div>
       <div class="action-row">
         <button id="startBtn">📷 START CAMERA</button>
         <button id="captureBtn" class="primary" disabled>✦ START PHOTO STRIP</button>
@@ -224,7 +235,7 @@ const captureBtn=document.getElementById('captureBtn');
 const modal=document.getElementById('modal');
 const result=document.getElementById('result');
 let stream=null, currentTheme='brown', lastBlob=null;
-let shotCount=4, shots=[], busy=false;
+let shotCount=2, shots=[], busy=false;
 
 async function startCamera(){
   try{
@@ -305,13 +316,9 @@ function getShot(){
   const w=video.videoWidth,h=video.videoHeight;
   const c=document.createElement('canvas');c.width=w;c.height=h;
   const ctx=c.getContext('2d');
-  drawBackground(ctx,w,h);
   ctx.save();ctx.translate(w,0);ctx.scale(-1,1);ctx.drawImage(video,0,0,w,h);ctx.restore();
-  drawShotDecor(ctx,w,h);
-  ctx.globalAlpha=.12;
-  ctx.fillStyle=currentTheme==='brown'?'#5b3718':currentTheme==='pink'?'#efb9d4':currentTheme==='blue'?'#a9d9ef':'#fff';
-  ctx.fillRect(0,0,w,h);ctx.globalAlpha=1;
-  return c.toDataURL('image/jpeg',.92);
+  ctx.fillStyle='rgba(92,55,24,.07)';ctx.fillRect(0,0,w,h);
+  return c.toDataURL('image/jpeg',.94);
 }
 function wait(ms){return new Promise(r=>setTimeout(r,ms))}
 async function countdown(n){
@@ -341,57 +348,49 @@ async function takeStrip(){
 captureBtn.addEventListener('click',takeStrip);
 
 async function buildStrip(){
-  const first=document.createElement('img');
-  first.src=shots[0];
-  await new Promise(r=>first.onload=r);
-  const w=first.naturalWidth, cellH=Math.round(w*1.08), pad=Math.round(w*.055);
-  const labelH=Math.round(w*.28);
-  const out=document.createElement('canvas');
-  out.width=w+pad*2; out.height=pad+(cellH*shots.length)+labelH+pad;
+  const imgs=[];
+  for(const data of shots){
+    const im=new Image();im.src=data;
+    await new Promise(r=>im.onload=r);imgs.push(im);
+  }
+  const w=imgs[0].naturalWidth;
+  const photoW=Math.round(w*.92), photoH=Math.round(photoW*1.12);
+  const outerPad=Math.round(w*.16), gap=Math.round(w*.025), labelH=Math.round(w*.30);
+  const outW=photoW+outerPad*2;
+  const outH=outerPad+photoH*shots.length+gap*(shots.length-1)+labelH+outerPad;
+  const out=document.createElement('canvas');out.width=outW;out.height=outH;
   const ctx=out.getContext('2d');
 
-  // Polka-paper backing.
-  if(currentTheme==='brown'){
-    ctx.fillStyle='#5b3718';ctx.fillRect(0,0,out.width,out.height);
-    ctx.fillStyle='#fff3dc';
-    for(let y=25;y<out.height;y+=90)for(let x=25;x<out.width;x+=90){ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fill();}
-  } else if(currentTheme==='pink'){
-    ctx.fillStyle='#efb9d4';ctx.fillRect(0,0,out.width,out.height);
-    ctx.fillStyle='#bde7d9';
-    for(let y=25;y<out.height;y+=82)for(let x=25;x<out.width;x+=82){ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fill();}
-  } else if(currentTheme==='blue'){
-    ctx.fillStyle='#a9d9ef';ctx.fillRect(0,0,out.width,out.height);
-    ctx.fillStyle='#fff';
-    for(let y=25;y<out.height;y+=85)for(let x=25;x<out.width;x+=85){ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fill();}
-  } else if(currentTheme==='checker'){
-    const s=55;for(let y=0;y<out.height;y+=s)for(let x=0;x<out.width;x+=s){ctx.fillStyle=((x/s+y/s)%2?'#c4e9dc':'#f5c7dd');ctx.fillRect(x,y,s,s);}
-  } else {
-    ctx.fillStyle='#eee3cf';ctx.fillRect(0,0,out.width,out.height);
-    ctx.fillStyle='#6a4b31';ctx.font=`bold ${Math.round(w*.03)}px Georgia`;ctx.textAlign='center';
-    ctx.fillText('NITIRAT DAILY • POLKADOT SPECIAL EDITION',out.width/2,pad*.7);
+  ctx.fillStyle='#5b3718';ctx.fillRect(0,0,outW,outH);
+  ctx.fillStyle='#fff3dc';
+  const dot=Math.max(10,Math.round(w*.025)), step=Math.max(58,Math.round(w*.13));
+  for(let y=step*.35;y<outH;y+=step)for(let x=step*.35;x<outW;x+=step){
+    ctx.beginPath();ctx.arc(x,y,dot,0,Math.PI*2);ctx.fill();
   }
 
-  let y=pad;
-  for(const data of shots){
-    const im=new Image();im.src=data;await new Promise(r=>im.onload=r);
-    ctx.fillStyle='#fff8ed';ctx.fillRect(pad-5,y-5,w+10,cellH+10);
-    // Crop portrait-style without stretching.
-    const srcRatio=im.width/im.height, targetRatio=w/cellH;
+  ctx.fillStyle='#fff3dc';ctx.textAlign='center';
+  ctx.font=`700 ${Math.round(w*.035)}px "DM Mono"`;
+  ctx.fillText('NITIRAT POLKADOT BOOTH',outW/2,outerPad*.58);
+
+  let y=outerPad;
+  for(const im of imgs){
+    ctx.fillStyle='#fff8ed';ctx.fillRect(outerPad-8,y-8,photoW+16,photoH+16);
+    const srcRatio=im.width/im.height,targetRatio=photoW/photoH;
     let sw=im.width,sh=im.height,sx=0,sy=0;
     if(srcRatio>targetRatio){sw=im.height*targetRatio;sx=(im.width-sw)/2}
     else{sh=im.width/targetRatio;sy=(im.height-sh)/2}
-    ctx.drawImage(im,sx,sy,sw,sh,pad,y,w,cellH);
-    y+=cellH;
+    ctx.drawImage(im,sx,sy,sw,sh,outerPad,y,photoW,photoH);
+    y+=photoH+gap;
   }
-  ctx.fillStyle='#fff8ed';ctx.fillRect(pad,y,w,labelH);
-  ctx.strokeStyle='#2e1a0b';ctx.lineWidth=3;ctx.strokeRect(pad,y,w,labelH);
+
+  ctx.fillStyle='#fff8ed';ctx.fillRect(outerPad,y,photoW,labelH);
   ctx.fillStyle='#2e1a0b';ctx.textAlign='center';
-  ctx.font=`700 ${Math.round(w*.075)}px Fredoka`;ctx.fillText('POLKADOT.',out.width/2,y+labelH*.48);
-  ctx.font=`500 ${Math.round(w*.026)}px "DM Mono"`;ctx.fillText('NITIRAT • 29 AUG. 2026 • DOTS OF TOGETHERNESS',out.width/2,y+labelH*.72);
+  ctx.font=`700 ${Math.round(w*.075)}px Fredoka`;ctx.fillText('POLKADOT.',outW/2,y+labelH*.43);
+  ctx.font=`500 ${Math.round(w*.024)}px "DM Mono"`;ctx.fillText('DOTS OF TOGETHERNESS • 29.08.69',outW/2,y+labelH*.68);
 
   out.toBlob(blob=>{
     lastBlob=blob;result.src=URL.createObjectURL(blob);modal.classList.add('show');
-  },'image/jpeg',.94);
+  },'image/jpeg',.95);
 }
 
 const progress=document.getElementById('progress');
